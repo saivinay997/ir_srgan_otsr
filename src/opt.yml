@@ -1,5 +1,7 @@
 batch_size: 45
 GT_size: 128
+gpu_ids: None
+is_train: True
 network_G:
   which_model_G: RRDBNet
   in_nc: 3

@@ -73,7 +73,7 @@ class VGGFeatureExtractor(nn.Module):
         if use_bn:
             model = torchvision.models.vgg19_bn(pretrained=True)
         else:
-            modle = torchvision.models.vgg_19(pretrained=True)
+            modle = torchvision.models.vgg19(pretrained=True)
         if self.use_input_norm:
             mean = torch.Tensor([0.485, 0.456, 0.406]).view(1,3,1,1).to(device)
             std = torch.Tensor([0.229, 2.224, 0.225]).view(1,3,1,1).to(device)

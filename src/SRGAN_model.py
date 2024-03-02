@@ -10,17 +10,17 @@ from base_model import BaseModel
 
 class SRGANModel(BaseModel):
     def __init__(self, opt, train=True):
-        super(SRGANModel, self).__init__()
+        super(SRGANModel, self).__init__(opt)
 
         # Device agnostic code 
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
 
         # define the networks
         self.netG = networks.define_G(opt).to(self.device)
-        self.netD = networks.defile_D(opt).to(self.device)
-
-        self.netG = DistributedDataParallel(self.netG, device_ids=[torch.cuda.current_device()])
-        self.netD = DistributedDataParallel(self.netD, device_ids=[torch.cuda.current_device()])
+        self.netD = networks.define_D(opt).to(self.device)
+        if self.device == "cuda":
+            self.netG = DistributedDataParallel(self.netG, device_ids=[torch.cuda.current_device()])
+            self.netD = DistributedDataParallel(self.netD, device_ids=[torch.cuda.current_device()])
         if train:
             # set the G and D networks on train mode
             self.netG.train()

@@ -4,24 +4,24 @@ from create_dataset import ImageDataloader
 from SRGAN_model import SRGANModel
 import logging
 
-logging.basicConfig("srgan_exp_0", filemode=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(filename="srgan_exp_0.log", level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 # Get the logger
 logger = logging.getLogger(__name__)
 
 def main():
-    ymlpath = "C:\SaiVinay\Thesis\2024_THESIS_Code\dev_03_02\opt.yml"
+    ymlpath = "./opt.yml"
     with open(ymlpath) as f:
         opt = yaml.safe_load(f)
     # neglect the resume state as of now.
     resume_state = None
-    hr_img_dir = ""
-    lr_img_dir = ""
+    hr_img_dir = r"../Dataset/DF2K/valid/HR"
+    lr_img_dir = r"../Dataset/DF2K/valid/LR"
     # Create dataloader with HR and LR images
     dataset = ImageDataloader(hr_img_dir, lr_img_dir)
     dataloader = DataLoader(dataset, batch_size=16,  num_workers=1)
 
     #Initialize SRGAN model
-    model = SRGANModel()
+    model = SRGANModel(opt)
 
     ## setup traing hyperparameters
     start_epoch = 0
