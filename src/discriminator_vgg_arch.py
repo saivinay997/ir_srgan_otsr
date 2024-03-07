@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torchvision
+import os
 
 
 class Discriminator_VGG_128(nn.Module):
@@ -71,9 +72,32 @@ class VGGFeatureExtractor(nn.Module):
         super(VGGFeatureExtractor, self).__init__()
         self.use_input_norm = use_input_norm
         if use_bn:
-            model = torchvision.models.vgg19_bn(pretrained=True)
-        else:
-            model = torchvision.models.vgg19(pretrained=True)
+            model_path = "vgg19_bn.pth"
+            if os.path.exists(model_path):
+                # Model weights already downloaded, load them
+                model = torchvision.models.vgg19_bn(pretrained=False)
+                model.load_state_dict(torch.load(model_path))
+                print("VGG-19 model loaded from disk.")
+            else:
+                # Download and save model weights
+                model = torchvision.models.vgg19_bn(pretrained=True)
+                torch.save(model.state_dict(), model_path)
+                print("VGG-19 model downloaded and saved to disk.")
+
+            # model = torchvision.models.vgg19_bn(pretrained=True)
+        else: 
+            model_path = "vgg19.pth"
+            if os.path.exists(model_path):
+                # Model weights already downloaded, load them
+                model = torchvision.models.vgg19(pretrained=False)
+                model.load_state_dict(torch.load(model_path))
+                print("VGG-19 model loaded from disk.")
+            else:
+                # Download and save model weights
+                model = torchvision.models.vgg19(pretrained=True)
+                torch.save(model.state_dict(), model_path)
+                print("VGG-19 model downloaded and saved to disk.")
+
         if self.use_input_norm:
             mean = torch.Tensor([0.485, 0.456, 0.406]).view(1,3,1,1).to(device)
             std = torch.Tensor([0.229, 2.224, 0.225]).view(1,3,1,1).to(device)
@@ -88,3 +112,21 @@ class VGGFeatureExtractor(nn.Module):
             x = (x - self.mean) / self.std 
         output = self.features(x)
         return output
+
+    def load_vgg19(self, pretrained=True, model_path='vgg19.pth'):
+        if pretrained:
+            if os.path.exists(model_path):
+                # Model weights already downloaded, load them
+                model = torchvision.models.vgg19(pretrained=False)
+                model.load_state_dict(torch.load(model_path))
+                print("VGG-19 model loaded from disk.")
+            else:
+                # Download and save model weights
+                model = torchvision.models.vgg19(pretrained=True)
+                torch.save(model.state_dict(), model_path)
+                print("VGG-19 model downloaded and saved to disk.")
+        else:
+            # Load VGG-19 without pretrained weights
+            model = torchvision.models.vgg19(pretrained=False)
+        
+        return model

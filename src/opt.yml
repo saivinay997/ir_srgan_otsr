@@ -5,8 +5,8 @@ use_tb_logger: true
 model: srgan
 distortion: sr
 scale: 4
-gpu_ids: None
-
+gpu_ids: [1]
+is_train: True
 #### datasets
 datasets:
   train:
@@ -43,7 +43,8 @@ network_D:
 
 #### path
 path:
-  pretrain_model_G: ../pretrained_model/DF2K.pth
+  pretrain_model_G: ~ #../pretrained_model/DF2K.pth
+  pretrain_model_D: ~ #
   strict_load: true
   resume_state: ~ #../experiments/training_states/model.state
   models: ../train_model

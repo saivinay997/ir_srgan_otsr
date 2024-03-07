@@ -18,9 +18,9 @@ class SRGANModel(BaseModel):
         # define the networks
         self.netG = networks.define_G(opt).to(self.device)
         self.netD = networks.define_D(opt).to(self.device)
-        if self.device == "cuda":
-            self.netG = DistributedDataParallel(self.netG, device_ids=[torch.cuda.current_device()])
-            self.netD = DistributedDataParallel(self.netD, device_ids=[torch.cuda.current_device()])
+        # if self.device == "cuda":
+        #     self.netG = DistributedDataParallel(self.netG, device_ids=[torch.cuda.current_device()])
+        #     self.netD = DistributedDataParallel(self.netD, device_ids=[torch.cuda.current_device()])
         if train:
             # set the G and D networks on train mode
             self.netG.train()
@@ -58,9 +58,9 @@ class SRGANModel(BaseModel):
 
             if self.cri_fea: # load VGG perceptual loss
                 self.netF = networks.define_F(opt, use_bn=False).to(self.device)
-                self.netF = DistributedDataParallel(self.netF, device_ids=[torch.cuda.current_device()])
+                # self.netF = DistributedDataParallel(self.netF, device_ids=[torch.cuda.current_device()])
 
-            self.cri_gan = GANLoss(train_opt["gan_type"], 1.0, 0,0).to(self.device)
+            self.cri_gan = GANLoss(train_opt["gan_type"], 1.0, 0.0).to(self.device)
             self.l_gan_w = train_opt['gan_weight']
             self.D_update_ratio = train_opt["D_update_ratio"] if train_opt['D_update_ratio'] else 1
             self.D_init_iters = train_opt['D_init_iters'] if train_opt["D_init_iters"] else 0
@@ -81,12 +81,12 @@ class SRGANModel(BaseModel):
                         print(f"Params {k} will not optimize.")
             self.optimizer_G = torch.optim.Adam(optim_params, lr=train_opt['lr_G'],
                                                 weight_decay = wd_G,
-                                                betas=(train_opt['beta1_G'], train_opt['betas2_G']))
+                                                betas=(train_opt['beta1_G'], train_opt['beta2_G']))
             self.optimizers.append(self.optimizer_G)
             
             wd_D = train_opt["weight_decay_D"] if train_opt["weight_decay_D"] else 0
             self.optimizer_D = torch.optim.Adam(self.netD.parameters(), lr=train_opt['lr_D'],
-                                                weitht_decay=wd_D,
+                                                weight_decay=wd_D,
                                                 betas = (train_opt['beta1_D'], train_opt['beta2_D']))
             self.optimizers.append(self.optimizer_D)
             self.log_dict = OrderedDict()
@@ -102,12 +102,12 @@ class SRGANModel(BaseModel):
         if self.opt['is_train'] and load_path_D is not None:
             self.load_network(load_path_D, self.netD, self.opt['path']['strict_load'])
     
-    def feed_data(self, data, need_GT=True):
-        self.var_L = data['LQ'].to(self.device)
+    def feed_data(self, hr_imgs, lr_imgs, need_GT=True):
+        self.var_L = lr_imgs.to(self.device)
         if need_GT:
-            self.var_H = data["GT"].to(self.device)
-            input_ref = data['ref'] if 'ref' in data else data['GT']
-            self.var_ref = input_ref.to(self.device)
+            self.var_H = hr_imgs.to(self.device)
+            # input_ref = data['ref'] if 'ref' in data else data['GT']
+            self.var_ref = hr_imgs.to(self.device)
     
     def optimize_parameters(self, step):
         # Generator

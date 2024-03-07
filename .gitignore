@@ -1,0 +1,8 @@
+DIV2K_train_HR
+Flickr2K
+DF2K_LR_HR
+flicker_kernel_done
+src/vgg19.pth
+src/vgg19_bn.pth
+results
+results_kernels_DIV2K

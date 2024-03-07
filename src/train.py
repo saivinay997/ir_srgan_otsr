@@ -3,6 +3,7 @@ from torch.utils.data import DataLoader
 from create_dataset import ImageDataloader
 from SRGAN_model import SRGANModel
 import logging
+from tqdm.auto import tqdm
 
 logging.basicConfig(filename="srgan_exp_0.log", level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 # Get the logger
@@ -26,23 +27,23 @@ def main():
     ## setup traing hyperparameters
     start_epoch = 0
     current_step = 0
-    total_epochs = opt["train"]["total_epochs"]
+    total_epochs = opt["train"]["niter"]
 
-    logger.info(f"Staring the training from epoch: {start_epoch}")
+    print(f"Staring the training from epoch: {start_epoch}")
 
-    for epoch in range(start_epoch, total_epochs + 1):
-        for _, train_data in enumerate(dataloader):
+    for epoch in tqdm(range(start_epoch, total_epochs + 1), desc="Epochs: "):
+        for _, (hr_imgs, lr_imgs) in enumerate(dataloader):
             current_step += 1
             # forward pass    
-            model.feed_data(train_data)
+            model.feed_data(hr_imgs, lr_imgs)
 
             # call for optimizer
             model.optimize_parameters(current_step)
 
-            if epoch % 10 == 0 and epoch!= 0:
-                logger.info('Saving models and training states.')
-                model.save(current_step)
-                # model.save_training_state(epoch, current_step)
+        if epoch % 10 == 0 and epoch!= 0:
+            print('Saving models and training states.')
+            model.save(current_step)
+            # model.save_training_state(epoch, current_step)
 
 
     
