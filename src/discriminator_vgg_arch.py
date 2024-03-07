@@ -33,7 +33,7 @@ class Discriminator_VGG_128(nn.Module):
         self.conv4_1 = nn.Conv2d(in_channels=nf*8, out_channels=nf*8, kernel_size=4, stride=2, padding=1, bias=False)
         self.batchNorm4_1 = nn.BatchNorm2d(num_features=nf*8, affine=True)
 
-        self.Linear1 = nn.Linear(in_features=512 * 4 * 4, out_features=100)
+        self.Linear1 = nn.Linear(in_features=25088, out_features=100)
         self.Linear2 = nn.Linear(in_features=100, out_features=1)
 
         self.lrelu = nn.LeakyReLU(negative_slope=0.2, inplace=True)
