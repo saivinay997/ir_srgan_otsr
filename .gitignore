@@ -6,4 +6,4 @@ src/vgg19.pth
 src/vgg19_bn.pth
 results
 results_kernels_DIV2K
-gans_project/DataSets
+KernelGAN
