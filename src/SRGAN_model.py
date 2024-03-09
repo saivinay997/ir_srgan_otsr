@@ -199,4 +199,18 @@ class SRGANModel(BaseModel):
         self.save_network(self.netG, "G", iter_step)
         self.save_network(self.netD, "D", iter_step)
 
+    def test(self):
+        self.netG.eval()
+        with torch.no_grad():
+            self.fake_H = self.netG(self.var_L)
+        self.netG.train()
+
+    def get_current_visuals(self, need_GT=True):
+        out_dict = OrderedDict()
+        out_dict["LQ"] = self.var_L.detach()[0].float().cpu()
+        out_dict["SR"] = self.fake_H.detach()[0].float().cpu()
+        if need_GT:
+            out_dict["GT"] = self.var_H.detach()[0].float().cpu()
+        return out_dict
+
         

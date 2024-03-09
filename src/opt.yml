@@ -18,7 +18,7 @@ datasets:
     dataroot_LQ: ../datasets/DF2K/generated/tdsr/LR
     use_shuffle: true
     n_workers: 12  # per GPU
-    batch_size: 45
+    batch_size: 4 #45
     GT_size: 128
     use_flip: true
     use_rot: true
