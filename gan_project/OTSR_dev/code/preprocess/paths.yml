@@ -1,0 +1,13 @@
+datasets:
+  df2k: C:\SaiVinay\SproutsAI\GitHub_\ir_srgan_otsr\gans_project\DataSets\DF2K
+  dped: C:\SaiVinay\SproutsAI\GitHub_\ir_srgan_otsr\gans_project\DataSets\DPED
+df2k:
+  tdsr:
+    source: C:\SaiVinay\SproutsAI\GitHub_\ir_srgan_otsr\gans_project\DataSets\Currupted-te-x
+    target: C:\SaiVinay\SproutsAI\GitHub_\ir_srgan_otsr\gans_project\DataSets\Currupted-te-y
+    valid: C:\SaiVinay\SproutsAI\GitHub_\ir_srgan_otsr\gans_project\DataSets\Currupted-va-x
+dped:
+  clean:
+    hr:
+      train: /home/public/data/RealSR/DPEDiphone-tr-x/
+      valid: /home/hao-xue/zezeng/real_sr/test_img/inputs/

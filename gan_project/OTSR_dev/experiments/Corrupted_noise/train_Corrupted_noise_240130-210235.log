@@ -1,0 +1,101 @@
+24-01-30 21:02:35.403 - INFO:   name: Corrupted_noise
+  use_tb_logger: True
+  model: srgan
+  distortion: sr
+  scale: 4
+  gpu_ids: [5, 4, 3, 0]
+  datasets:[
+    train:[
+      name: train
+      mode: LQGT
+      aug: noise
+      noise_data: C:\SaiVinay\Thesis\Git_Hub_Thesis\DataSets\DF2K\Corrupted_noise
+      dataroot_GT: C:\SaiVinay\Thesis\Git_Hub_Thesis\get_training_imgs\results\Test_2\imgsResizedHR
+      dataroot_LQ: C:\SaiVinay\Thesis\Git_Hub_Thesis\get_training_imgs\results\Test_2\imgsResizedLR
+      use_shuffle: True
+      n_workers: 12
+      batch_size: 45
+      GT_size: 128
+      use_flip: True
+      use_rot: True
+      color: RGB
+      phase: train
+      scale: 4
+      data_type: img
+    ]
+    val:[
+      name: val
+      mode: LQGT
+      dataroot_GT: C:\SaiVinay\Thesis\Git_Hub_Thesis\DataSets\DF2K\valid\HR
+      dataroot_LQ: C:\SaiVinay\Thesis\Git_Hub_Thesis\DataSets\DF2K\valid\LR
+      phase: val
+      scale: 4
+      data_type: img
+    ]
+  ]
+  network_G:[
+    which_model_G: RRDBNet
+    in_nc: 3
+    out_nc: 3
+    nf: 64
+    nb: 23
+    scale: 4
+  ]
+  network_D:[
+    which_model_D: discriminator_vgg_128
+    in_nc: 3
+    nf: 64
+  ]
+  path:[
+    pretrain_model_G: ../pretrained_model/DF2K.pth
+    strict_load: True
+    resume_state: None
+    models: C:\SaiVinay\Thesis\Git_Hub_Thesis\OTSR_dev\experiments\Corrupted_noise\models
+    root: C:\SaiVinay\Thesis\Git_Hub_Thesis\OTSR_dev
+    experiments_root: C:\SaiVinay\Thesis\Git_Hub_Thesis\OTSR_dev\experiments\Corrupted_noise
+    training_state: C:\SaiVinay\Thesis\Git_Hub_Thesis\OTSR_dev\experiments\Corrupted_noise\training_state
+    log: C:\SaiVinay\Thesis\Git_Hub_Thesis\OTSR_dev\experiments\Corrupted_noise
+    val_images: C:\SaiVinay\Thesis\Git_Hub_Thesis\OTSR_dev\experiments\Corrupted_noise\val_images
+  ]
+  train:[
+    lr_G: 0.0001
+    weight_decay_G: 0
+    beta1_G: 0.9
+    beta2_G: 0.999
+    lr_D: 0.0001
+    weight_decay_D: 0
+    beta1_D: 0.9
+    beta2_D: 0.999
+    lr_scheme: MultiStepLR
+    niter: 40001
+    warmup_iter: -1
+    lr_steps: [10000, 20000, 30000, 40000]
+    lr_gamma: 0.5
+    pixel_criterion: l1
+    pixel_weight: 0.01
+    feature_criterion: l1
+    feature_weight: 0.7
+    gan_type: wgan-qc
+    gan_weight: 1.0
+    D_update_ratio: 1
+    D_init_iters: 0
+    manual_seed: 10
+    val_freq: 1000
+    WQC_KCoef: 1
+    WQC_gamma: 0.4
+    edge_type: sobel
+    edge_weight: 0.01
+  ]
+  logger:[
+    print_freq: 100
+    save_checkpoint_freq: 5000.0
+  ]
+  is_train: True
+  dist: False
+
+24-01-30 21:02:41.720 - INFO: Random seed: 10
+24-01-30 21:02:42.222 - INFO: Dataset [LQGTDataset - train] is created.
+24-01-30 21:02:42.224 - INFO: Number of train images: 50, iters: 2
+24-01-30 21:02:42.225 - INFO: Total epochs needed: 20001 for iters 40,001
+24-01-30 21:02:42.225 - INFO: Dataset [LQGTDataset - val] is created.
+24-01-30 21:02:42.225 - INFO: Number of val images in [val]: 100
