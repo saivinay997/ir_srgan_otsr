@@ -18,7 +18,7 @@ datasets:
     dataroot_LQ: ../datasets/DF2K/generated/tdsr/LR
     use_shuffle: true
     n_workers: 12  # per GPU
-    batch_size: 4 #45
+    batch_size: 45
     GT_size: 128
     use_flip: true
     use_rot: true
@@ -60,6 +60,8 @@ train:
   beta1_D: 0.9
   beta2_D: 0.999
   lr_scheme: MultiStepLR
+  restarts: None
+  restart_weights: None
 
   niter: 40001
   warmup_iter: -1  # no warm up

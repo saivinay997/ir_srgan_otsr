@@ -7,6 +7,7 @@ from collections import OrderedDict
 from torch.autograd import Variable
 from linePromgram import H_Star_Solution
 from base_model import BaseModel
+import lr_scheduler
 
 class SRGANModel(BaseModel):
     def __init__(self, opt, train=True):
@@ -89,6 +90,21 @@ class SRGANModel(BaseModel):
                                                 weight_decay=wd_D,
                                                 betas = (train_opt['beta1_D'], train_opt['beta2_D']))
             self.optimizers.append(self.optimizer_D)
+
+            if train_opt['lr_scheme'] == 'MultiStepLR':
+                for optimizer in self.optimizers:
+                    self.schedulers.append(
+                        lr_scheduler.MultiStepLR_Restart(optimizer, train_opt['lr_steps'],
+                                                         gamma=train_opt['lr_gamma']))
+            elif train_opt['lr_scheme'] == 'CosineAnnealingLR_Restart':
+                for optimizer in self.optimizers:
+                    self.schedulers.append(
+                        lr_scheduler.CosineAnnealingLR_Restart(
+                            optimizer, train_opt['T_period'], eta_min=train_opt['eta_min'],
+                            restarts=train_opt['restarts'], weights=train_opt['restart_weights']))
+            else:
+                raise NotImplementedError('MultiStepLR learning rate scheme is enough.')
+
             self.log_dict = OrderedDict()
         self.load()
 

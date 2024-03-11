@@ -56,7 +56,9 @@ def main(HR_train, Lr_train, HR_val, LR_val):
             # call for optimizer
             model.optimize_parameters(current_step)
 
-            if epoch % 2 == 0 and val_loader is not None:
+            model.update_learning_rate(current_step, warmup_iter=opt['train']['warmup_iter'])
+            
+            if epoch % 10 == 0 and val_loader is not None:
                 avg_psnr = val_pix_err_f = val_pix_err_nf = val_mean_color_err = avg_ssim = 0.0
                 idx = 0
                 for val_hr, val_lr in val_loader:
@@ -99,10 +101,11 @@ def main(HR_train, Lr_train, HR_val, LR_val):
 
 
 
-        if epoch % 5 == 0 and epoch!= 0:
+        if epoch % 50 == 0 and epoch!= 0:
             print(f'Saving models and training states at epoch {epoch}')
             model.save(current_step)
             # model.save_training_state(epoch, current_step)
 
 
-    
+    print(f'Saving models and training states at epoch {epoch}')
+    model.save(current_step)
