@@ -8,6 +8,13 @@ from torch.autograd import Variable
 from linePromgram import H_Star_Solution
 from base_model import BaseModel
 import lr_scheduler
+import utils
+
+
+# logging.basicConfig(filename="srgan_exp_0.log", level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+# Get the logger
+logger = utils.setup_logger(log_file='sr_gan_training_01.log')
+
 
 class SRGANModel(BaseModel):
     def __init__(self, opt, train=True):
@@ -158,7 +165,8 @@ class SRGANModel(BaseModel):
                 l_g_gan = self.l_gan_w *pow(pred_d_real.mean() - pred_g_fake.mean(), 2)
 
             l_g_total += l_g_gan
-
+            if step % 500 == 0:
+                logger.info(f"Generator Loss: {l_g_total} at step {step}")
             l_g_total.backward(retain_graph=True)
             torch.nn.utils.clip_grad_norm_(self.netG.parameters(), 5)
             self.optimizer_G.step()
@@ -204,7 +212,8 @@ class SRGANModel(BaseModel):
             l_d_total += (l_d_real + l_d_fake) / 2
         else:
             raise NotImplementedError('GAN type [{:s}] is not found'.format(self.gan_type))    
-        
+        if step % 500 == 0:
+                logger.info(f"Discriminator Loss: {l_g_total} at step {step}")
         l_d_total.backward()
         self.optimizer_D.step()
 

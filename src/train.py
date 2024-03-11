@@ -9,7 +9,7 @@ import os
 import utils
 
 
-logging.basicConfig(filename="srgan_exp_0.log", level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+# logging.basicConfig(filename="srgan_exp_0.log", level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 # Get the logger
 logger = utils.setup_logger(log_file='sr_gan_training_01.log')
 
