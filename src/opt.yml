@@ -5,7 +5,7 @@ use_tb_logger: true
 model: srgan
 distortion: sr
 scale: 4
-gpu_ids: [1]
+gpu_ids: [0]
 is_train: True
 #### datasets
 datasets:

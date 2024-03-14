@@ -4,6 +4,7 @@ import numpy as np
 import cv2
 from torchvision.utils import make_grid
 import logging
+import random
 
 def tensor2img(tensor, out_type=np.uint8, min_max=(0, 1)):
 
@@ -26,6 +27,12 @@ def tensor2img(tensor, out_type=np.uint8, min_max=(0, 1)):
         img_np = (img_np * 255.0).round()
     return img_np.astype(out_type)
 
+
+def set_random_seed(seed):
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
 
 def save_img(img, img_path, mode='RGB'):
     cv2.imwrite(img_path, img)

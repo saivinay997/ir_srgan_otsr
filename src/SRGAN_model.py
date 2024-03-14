@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import networks
-from torch.nn.parallel import DistributedDataParallel
+from torch.nn.parallel import DistributedDataParallel, DataParallel
 from loss import GANLoss, QC_GradientPenaltyLoss
 from collections import OrderedDict
 from torch.autograd import Variable
@@ -26,6 +26,9 @@ class SRGANModel(BaseModel):
         # define the networks
         self.netG = networks.define_G(opt).to(self.device)
         self.netD = networks.define_D(opt).to(self.device)
+
+        self.netG = DataParallel(self.netG)
+        self.netD = DataParallel(self.netD)
         # if self.device == "cuda":
         #     self.netG = DistributedDataParallel(self.netG, device_ids=[torch.cuda.current_device()])
         #     self.netD = DistributedDataParallel(self.netD, device_ids=[torch.cuda.current_device()])
@@ -36,7 +39,7 @@ class SRGANModel(BaseModel):
 
         train_opt = opt["train"]
 
-        if train:
+        if self.is_train:
             if train_opt["pixel_weight"] > 0:
                 l_pix_type = train_opt["pixel_criterion"]
                 if l_pix_type == "l1":
@@ -66,6 +69,7 @@ class SRGANModel(BaseModel):
 
             if self.cri_fea: # load VGG perceptual loss
                 self.netF = networks.define_F(opt, use_bn=False).to(self.device)
+                self.netF = DataParallel(self.netF)
                 # self.netF = DistributedDataParallel(self.netF, device_ids=[torch.cuda.current_device()])
 
             self.cri_gan = GANLoss(train_opt["gan_type"], 1.0, 0.0).to(self.device)
@@ -138,7 +142,7 @@ class SRGANModel(BaseModel):
             p.requires_grad = False
         
         self.optimizer_G.zero_grad()
-        self.fake_H = self.netG(self.var_L.detach())
+        self.fake_H = self.netG(self.var_L)
 
         l_g_total = 0
         if step % self.D_update_ratio == 0 and step > self.D_init_iters:
@@ -193,15 +197,15 @@ class SRGANModel(BaseModel):
             l_d_total = (l_d_real + l_d_fake) / 2           
         #Revised by zezengli on Oct. 7, 2020 ,loss=wgan_qc+ gamma*regulation
         elif self.opt['train']['gan_type'] == 'wgan-qc':
-            fake_H_detach = Variable(self.fake_H.detach(),requires_grad=True)
+            fake_H_detach = self.fake_H.detach() 
             pred_d_fake = self.netD(fake_H_detach)  # detach to avoid BP to G
                        
             fakeImg = self.fake_H.detach().cpu()
             trueImg = self.var_ref.detach().cpu()
 
             HStar_real, HStar_fake = H_Star_Solution(fakeImg, trueImg, self.opt['train']['WQC_KCoef']) 
-            HStar_real_tensor = Variable(torch.FloatTensor(HStar_real),requires_grad=False).to(self.device)
-            HStar_fake_tensor = Variable(torch.FloatTensor(HStar_fake),requires_grad=False).to(self.device)
+            HStar_real_tensor = torch.FloatTensor(HStar_real).to(self.device)
+            HStar_fake_tensor = torch.FloatTensor(HStar_fake).to(self.device)
 
             pred_HStar_real = [pred_d_real, HStar_real_tensor]
             pred_HStar_fake = [pred_d_fake, HStar_fake_tensor]    
@@ -230,6 +234,88 @@ class SRGANModel(BaseModel):
             self.fake_H = self.netG(self.var_L)
         self.netG.train()
 
+    def back_projection(self):
+        lr_error = self.var_L - torch.nn.functional.interpolate(self.fake_H,
+                                                                scale_factor=1/self.opt['scale'],
+                                                                mode='bicubic',
+                                                                align_corners=False)
+        us_error = torch.nn.functional.interpolate(lr_error,
+                                                   scale_factor=self.opt['scale'],
+                                                   mode='bicubic',
+                                                   align_corners=False)
+        self.fake_H += self.opt['back_projection_lamda'] * us_error
+        torch.clamp(self.fake_H, 0, 1)
+
+    def test_chop(self):
+        self.netG.eval()
+        with torch.no_grad():
+            self.fake_H = self.forward_chop(self.var_L)
+        self.netG.train()
+
+    def forward_chop(self, *args, shave=10, min_size=160000):
+        # scale = 1 if self.input_large else self.scale[self.idx_scale]
+        scale = self.opt['scale']
+        n_GPUs = min(torch.cuda.device_count(), 4)
+        args = [a.squeeze().unsqueeze(0) for a in args]
+
+        h, w = args[0].size()[-2:]
+
+        top = slice(0, h//2 + shave)
+        bottom = slice(h - h//2 - shave, h)
+        left = slice(0, w//2 + shave)
+        right = slice(w - w//2 - shave, w)
+        x_chops = [torch.cat([
+            a[..., top, left],
+            a[..., top, right],
+            a[..., bottom, left],
+            a[..., bottom, right]
+        ]) for a in args]
+
+        y_chops = []
+        if h * w < 4 * min_size:
+            for i in range(0, 4, n_GPUs):
+                x = [x_chop[i:(i + n_GPUs)] for x_chop in x_chops]
+
+                y = P.data_parallel(self.netG, *x, range(n_GPUs))
+                if not isinstance(y, list): y = [y]
+                if not y_chops:
+                    y_chops = [[c for c in _y.chunk(n_GPUs, dim=0)] for _y in y]
+                else:
+                    for y_chop, _y in zip(y_chops, y):
+                        y_chop.extend(_y.chunk(n_GPUs, dim=0))
+        else:
+
+            for p in zip(*x_chops):
+                y = self.forward_chop(*p, shave=shave, min_size=min_size)
+                if not isinstance(y, list): y = [y]
+                if not y_chops:
+                    y_chops = [[_y] for _y in y]
+                else:
+                    for y_chop, _y in zip(y_chops, y): y_chop.append(_y)
+
+        h *= scale
+        w *= scale
+        top = slice(0, h//2)
+        bottom = slice(h - h//2, h)
+        bottom_r = slice(h//2 - h, None)
+        left = slice(0, w//2)
+        right = slice(w - w//2, w)
+        right_r = slice(w//2 - w, None)
+
+        b, c = y_chops[0][0].size()[:-2]
+        y = [y_chop[0].new(b, c, h, w) for y_chop in y_chops]
+        for y_chop, _y in zip(y_chops, y):
+            _y[..., top, left] = y_chop[0][..., top, left]
+            _y[..., top, right] = y_chop[1][..., top, right_r]
+            _y[..., bottom, left] = y_chop[2][..., bottom_r, left]
+            _y[..., bottom, right] = y_chop[3][..., bottom_r, right_r]
+
+        if len(y) == 1:
+            y = y[0]
+
+        return y
+
+
     def get_current_visuals(self, need_GT=True):
         out_dict = OrderedDict()
         out_dict["LQ"] = self.var_L.detach()[0].float().cpu()
@@ -238,4 +324,5 @@ class SRGANModel(BaseModel):
             out_dict["GT"] = self.var_H.detach()[0].float().cpu()
         return out_dict
 
+    
         

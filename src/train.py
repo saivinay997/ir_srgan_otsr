@@ -7,21 +7,26 @@ import logging
 from tqdm.auto import tqdm
 import os
 import utils
+import torch
 
 
 # logging.basicConfig(filename="srgan_exp_0.log", level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 # Get the logger
 logger = utils.setup_logger(log_file='sr_gan_training_01.log')
 
-def main(HR_train, Lr_train, HR_val, LR_val):
+def main(HR_train, LR_train, HR_val, LR_val):
     ymlpath = "./opt.yml"
     with open(ymlpath) as f:
         opt = yaml.safe_load(f)
     # neglect the resume state as of now.
     resume_state = None
-    
+    seed = opt['train']['manual_seed']
+    utils.set_random_seed(seed)
+
+    torch.backends.cudnn.benckmark = True
+
     # Create dataloader with HR and LR images
-    dataset = ImageDataloader(HR_train, Lr_train)
+    dataset = ImageDataloader(HR_train, LR_train)
     dataloader = DataLoader(dataset, batch_size=opt["datasets"]["train"]["batch_size"],  num_workers=4)
 
    
