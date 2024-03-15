@@ -10,6 +10,10 @@ from tqdm.auto import tqdm
 from utils import gradient_penalty, save_network
 from model import SRGAN_d, SRGAN_g
 from imageTransform import ImageDataloader
+import wandb
+
+
+
 
 def train(hr_dir, lr_dir):
     # device agnostic code
@@ -25,6 +29,19 @@ def train(hr_dir, lr_dir):
     FEATURES_GEN = 16
     CRITIC_ITERATIONS = 2
     LAMBDA_GP = 10
+
+    wandb.init(
+    # set the wandb project where this run will be logged
+    project="SRGAN_Arch",
+    
+    # track hyperparameters and run metadata
+    config={
+    "learning_rate": LEARNING_RATE,
+    "architecture": "SRGAN",
+    "dataset": "DIV2K",
+    "epochs": NUM_EPOCHS,
+    }
+)
 
     transform_lr = transforms.Compose([transforms.CenterCrop(IMAGE_SIZE),
                                                 transforms.ToTensor()])
@@ -43,11 +60,6 @@ def train(hr_dir, lr_dir):
 
     optG = optim.Adam(netG.parameters(), lr=LEARNING_RATE, betas=(0.0, 0.999))
     optD = optim.Adam(netD.parameters(), lr=LEARNING_RATE, betas=(0.0, 0.999))
-
-    writer_real = SummaryWriter(f"logs/real")
-    writer_fake = SummaryWriter(f"logs/fake")
-    writerD = SummaryWriter(f"logs/DLoss")
-    writerG = SummaryWriter(f"logs/GLoss")
 
     step = 0
 
@@ -79,8 +91,9 @@ def train(hr_dir, lr_dir):
             lossG.backward()
             optG.step()
 
-            writerD.add_scalar("Loss_D", lossD, global_step=step)
-            writerG.add_scalar("Loss_G", lossG, global_step=step)
+            metrics = {"train/lossD": lossD, "train/lossG": lossG, "train/steps": step}
+
+            wandb.log(metrics)
 
             # Print losses occasionally and print to tensorboard
             if batch_idx % 10 == 0:
@@ -99,12 +112,13 @@ def train(hr_dir, lr_dir):
                         fake[:4], normalize=True
                     )
 
-                    writer_real.add_image("Real", img_grid_real, global_step=step)
-                    writer_fake.add_image("Fake", img_grid_fake, global_step=step)
+                    wandb.Image(img_grid_real, caption=f"Real_{step}")
+                    wandb.Image(img_grid_fake, caption=f"Fake_{step}")
 
+                    
                 step += 1
 
-        if epoch % 100 == 0 and epoch != 0:
+        if epoch % 100 == 0:
             save_network(netG, "G", epoch)
             save_network(netD, "D", epoch)
     save_network(netG, "G", epoch)
