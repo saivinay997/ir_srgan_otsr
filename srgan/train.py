@@ -6,8 +6,8 @@ import torchvision.datasets as datasets
 import torchvision.transforms as transforms
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
-from tqdm import tqdm
-from utils import gradient_penalty
+from tqdm.auto import tqdm
+from utils import gradient_penalty, save_network
 from model import SRGAN_d, SRGAN_g
 from imageTransform import ImageDataloader
 
@@ -46,13 +46,16 @@ def train(hr_dir, lr_dir):
 
     writer_real = SummaryWriter(f"logs/real")
     writer_fake = SummaryWriter(f"logs/fake")
+    writerD = SummaryWriter(f"logs/DLoss")
+    writerG = SummaryWriter(f"logs/GLoss")
+
     step = 0
 
     netG.train()
     netD.train()
 
-    for epoch in range(NUM_EPOCHS):
-        for batch_idx, (hr_img, lr_img) in enumerate(tqdm(data_loader)):
+    for epoch in tqdm(range(NUM_EPOCHS)):
+        for batch_idx, (hr_img, lr_img) in enumerate(data_loader):
             hr_img = hr_img.to(device)
             lr_img = lr_img.to(device)
 
@@ -66,6 +69,7 @@ def train(hr_dir, lr_dir):
 
                 netD.zero_grad()
                 lossD.backward(retain_graph=True)
+                
                 optD.step()
 
             # Train Generator: min -E[critic(gen_fake)]
@@ -74,6 +78,9 @@ def train(hr_dir, lr_dir):
             lossG = -torch.mean(critic_fake)
             lossG.backward()
             optG.step()
+
+            writerD.add_scalar("Loss_D", lossD, global_step=step)
+            writerG.add_scalar("Loss_G", lossG, global_step=step)
 
             # Print losses occasionally and print to tensorboard
             if batch_idx % 10 == 0:
@@ -86,13 +93,19 @@ def train(hr_dir, lr_dir):
                     fake = netG(lr_img)
                     # take out (up to) 8 examples
                     img_grid_real = torchvision.utils.make_grid(
-                        hr_img[:8], normalize=True
+                        hr_img[:4], normalize=True
                     )
                     img_grid_fake = torchvision.utils.make_grid(
-                        fake[:8], normalize=True
+                        fake[:4], normalize=True
                     )
 
                     writer_real.add_image("Real", img_grid_real, global_step=step)
                     writer_fake.add_image("Fake", img_grid_fake, global_step=step)
 
                 step += 1
+
+        if epoch % 100 == 0 and epoch != 0:
+            save_network(netG, "G", epoch)
+            save_network(netD, "D", epoch)
+    save_network(netG, "G", epoch)
+    save_network(netD, "D", epoch)
