@@ -9,6 +9,7 @@ from linePromgram import H_Star_Solution
 from base_model import BaseModel
 import lr_scheduler
 import utils
+import wandb
 
 
 # logging.basicConfig(filename="srgan_exp_0.log", level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -171,6 +172,7 @@ class SRGANModel(BaseModel):
             l_g_total += l_g_gan
             if step % 500 == 0:
                 logger.info(f"Generator Loss: {l_g_total} at step {step}")
+                wandb.log({"Generator Loss": l_g_total}, step=step)
             l_g_total.backward(retain_graph=True)
             torch.nn.utils.clip_grad_norm_(self.netG.parameters(), 5)
             self.optimizer_G.step()
@@ -218,15 +220,16 @@ class SRGANModel(BaseModel):
             raise NotImplementedError('GAN type [{:s}] is not found'.format(self.gan_type))    
         if step % 500 == 0:
                 logger.info(f"Discriminator Loss: {l_g_total} at step {step}")
+                wandb.log({"Discriminator Loss": l_d_total}, step=step)
         l_d_total.backward()
         self.optimizer_D.step()
 
         self.d_total_loss=l_d_total.detach().cpu()
         self.g_total_loss=l_g_total.detach().cpu()
 
-    def save(self, iter_step):
-        self.save_network(self.netG, "G", iter_step)
-        self.save_network(self.netD, "D", iter_step)
+    def save(self, iter_step, trained_model_path):
+        self.save_network(self.netG, "G", iter_step, trained_model_path)
+        self.save_network(self.netD, "D", iter_step, trained_model_path)
 
     def test(self):
         self.netG.eval()

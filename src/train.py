@@ -8,14 +8,20 @@ from tqdm.auto import tqdm
 import os
 import utils
 import torch
+import wandb
+import wb_util
+import datetime
+
+## setup weights and biases
+
+curr_time = datetime.datetime.now().strftime("%d-%m_%H-%M")
 
 
 # logging.basicConfig(filename="srgan_exp_0.log", level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 # Get the logger
 logger = utils.setup_logger(log_file='sr_gan_training_01.log')
 
-def main(HR_train, LR_train, HR_val, LR_val):
-    ymlpath = "./opt.yml"
+def main(HR_train, HR_val, ymlpath, val_results_path, trained_model_path):
     with open(ymlpath) as f:
         opt = yaml.safe_load(f)
     # neglect the resume state as of now.
@@ -26,15 +32,13 @@ def main(HR_train, LR_train, HR_val, LR_val):
     torch.backends.cudnn.benckmark = True
 
     # Create dataloader with HR and LR images
-    dataset = ImageDataloader(HR_train, LR_train)
+    dataset = ImageDataloader(HR_train)
     dataloader = DataLoader(dataset, batch_size=opt["datasets"]["train"]["batch_size"],  num_workers=4)
 
    
 
-    val_dataset = ImageDataloader(HR_val, LR_val)
+    val_dataset = ImageDataloader(HR_val)
     val_loader = DataLoader(val_dataset, batch_size=opt["datasets"]["train"]["batch_size"], num_workers=4)
-
-    val_results_path = r"C:\SaiVinay\SproutsAI\GitHub_\ir_srgan_otsr\src\val_results"
 
     #Initialize SRGAN model
     model = SRGANModel(opt)
@@ -48,6 +52,18 @@ def main(HR_train, LR_train, HR_val, LR_val):
     total_iters = int(opt["train"]['niter'])
     total_epochs = int(math.ceil(total_iters / train_size))
 
+    wandb.init(
+        # Set the project where this run will be logged
+        project="super-resolution-gan", 
+        # We pass a run name (otherwise it’ll be randomly assigned, like sunshine-lollypop-10)
+        name=f"experiment_{curr_time}", 
+        # Track hyperparameters and run metadata
+        config={
+        "epochs": total_epochs,
+        "total_iters": total_iters,
+        "batch_size": opt["datasets"]["train"]["batch_size"],
+        "learning_rate": opt["train"]["lr"]
+        })
 
     print(f"Staring the training from epoch: {start_epoch}. Total epoch: {total_epochs}")
     logger.info(f"Staring the training from epoch: {start_epoch}. Total epoch: {total_epochs}")
@@ -70,7 +86,7 @@ def main(HR_train, LR_train, HR_val, LR_val):
                     if idx > 2:
                         break 
                     idx += 1
-                    img_name = f"{epoch}_{idx}"
+                    img_name = f"img_{idx}"
                     img_dir = os.path.join(val_results_path, img_name)
                     if not os.path.exists(img_dir):
                         os.makedirs(img_dir)
@@ -82,7 +98,12 @@ def main(HR_train, LR_train, HR_val, LR_val):
                     sr_img = utils.tensor2img(visuals['SR'])
                     gt_img = utils.tensor2img(visuals["GT"])
 
-                    print("Starting to save image.")
+                    # log the images to wandb
+                    _lr_img = utils.tensor2img(val_lr)
+                    
+                    wb_util.log_image_table(lr_imgs=_lr_img, hr_imgs=gt_img, sr_img=sr_img, step=current_step)
+
+                    # print("Starting to save image.")
                     save_img_path = os.path.join(img_dir, f"{epoch}_{idx}.png")
                     utils.save_img(sr_img, save_img_path)
 
@@ -104,13 +125,16 @@ def main(HR_train, LR_train, HR_val, LR_val):
                 logger.info(f"# Validation # PSNR: {avg_psnr}")
                 logger.info(f"# Validation # SSIM: {avg_ssim}")
 
+                metrics = {"PSNR": avg_psnr, "SSIM": avg_ssim}
+                wandb.log(metrics, step=current_step)
 
 
-        if epoch % 50 == 0 and epoch!= 0:
+
+        if epoch % 3 == 0 and epoch!= 0:
             print(f'Saving models and training states at epoch {epoch}')
-            model.save(current_step)
+            model.save(current_step, trained_model_path)
             # model.save_training_state(epoch, current_step)
 
 
     print(f'Saving models and training states at epoch {epoch}')
-    model.save(current_step)
+    model.save(current_step, trained_model_path)
