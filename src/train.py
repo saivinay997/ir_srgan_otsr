@@ -62,7 +62,7 @@ def main(HR_train, HR_val, ymlpath, val_results_path, trained_model_path):
         "epochs": total_epochs,
         "total_iters": total_iters,
         "batch_size": opt["datasets"]["train"]["batch_size"],
-        "learning_rate": opt["train"]["lr"]
+        # "learning_rate": opt["train"]["lr"]
         })
 
     print(f"Staring the training from epoch: {start_epoch}. Total epoch: {total_epochs}")
@@ -77,11 +77,11 @@ def main(HR_train, HR_val, ymlpath, val_results_path, trained_model_path):
             # call for optimizer
             model.optimize_parameters(current_step)
 
-            dLoss, gLoss = model.update_learning_rate(current_step, warmup_iter=opt['train']['warmup_iter'])
+            model.update_learning_rate(current_step, warmup_iter=opt['train']['warmup_iter'])
 
             # log the losses to wandb
-            metrics = {"dLoss": dLoss, "gLoss": gLoss}
-            wandb.log(metrics, step=current_step)
+            # metrics = {"dLoss": dLoss, "gLoss": gLoss}
+            # wandb.log(metrics, step=current_step)
             
             if epoch % 10 == 0 and val_loader is not None:
                 avg_psnr = val_pix_err_f = val_pix_err_nf = val_mean_color_err = avg_ssim = 0.0
