@@ -199,15 +199,15 @@ class SRGANModel(BaseModel):
             l_d_total = (l_d_real + l_d_fake) / 2           
         #Revised by zezengli on Oct. 7, 2020 ,loss=wgan_qc+ gamma*regulation
         elif self.opt['train']['gan_type'] == 'wgan-qc':
-            fake_H_detach = self.fake_H.detach() 
+            fake_H_detach = Variable(self.fake_H.detach(),requires_grad=True)
             pred_d_fake = self.netD(fake_H_detach)  # detach to avoid BP to G
                        
             fakeImg = self.fake_H.detach().cpu()
             trueImg = self.var_ref.detach().cpu()
 
             HStar_real, HStar_fake = H_Star_Solution(fakeImg, trueImg, self.opt['train']['WQC_KCoef']) 
-            HStar_real_tensor = torch.FloatTensor(HStar_real).to(self.device)
-            HStar_fake_tensor = torch.FloatTensor(HStar_fake).to(self.device)
+            HStar_real_tensor = Variable(torch.FloatTensor(HStar_real),requires_grad=False).to(self.device)
+            HStar_fake_tensor = Variable(torch.FloatTensor(HStar_fake),requires_grad=False).to(self.device)
 
             pred_HStar_real = [pred_d_real, HStar_real_tensor]
             pred_HStar_fake = [pred_d_fake, HStar_fake_tensor]    
