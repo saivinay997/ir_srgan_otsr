@@ -77,10 +77,15 @@ def main(HR_train, HR_val, ymlpath, val_results_path, trained_model_path):
             # call for optimizer
             model.optimize_parameters(current_step)
 
-            model.update_learning_rate(current_step, warmup_iter=opt['train']['warmup_iter'])
+            dLoss, gLoss = model.update_learning_rate(current_step, warmup_iter=opt['train']['warmup_iter'])
+
+            # log the losses to wandb
+            metrics = {"dLoss": dLoss, "gLoss": gLoss}
+            wandb.log(metrics, step=current_step)
             
             if epoch % 10 == 0 and val_loader is not None:
                 avg_psnr = val_pix_err_f = val_pix_err_nf = val_mean_color_err = avg_ssim = 0.0
+                _lr_img = _hr_img = _sr_img = None
                 idx = 0
                 for val_hr, val_lr in val_loader:
                     if idx > 2:
@@ -95,13 +100,12 @@ def main(HR_train, HR_val, ymlpath, val_results_path, trained_model_path):
                     model.test()
 
                     visuals = model.get_current_visuals()
-                    sr_img = utils.tensor2img(visuals['SR'])
-                    gt_img = utils.tensor2img(visuals["GT"])
+                    sr_img = _sr_img = utils.tensor2img(visuals['SR'])
+                    gt_img = _ht_img =  utils.tensor2img(visuals["GT"])
 
                     # log the images to wandb
-                    _lr_img = utils.tensor2img(val_lr)
+                    _lr_img = utils.tensor2img(visuals['LQ'])
                     
-                    wb_util.log_image_table(lr_imgs=_lr_img, hr_imgs=gt_img, sr_imgs=sr_img, step=current_step)
 
                     # print("Starting to save image.")
                     save_img_path = os.path.join(img_dir, f"{epoch}_{idx}.png")
@@ -114,6 +118,8 @@ def main(HR_train, HR_val, ymlpath, val_results_path, trained_model_path):
                     cropped_gt_img = gt_img[crop_size:-crop_size, crop_size:-crop_size, :]
                     avg_psnr += utils.calculate_psnr(cropped_sr_img * 255, cropped_gt_img * 255)
                     avg_ssim += utils.calculate_ssim(cropped_sr_img * 255, cropped_gt_img * 255)
+
+                wb_util.log_image_table(lr_imgs=_lr_img, hr_imgs=_ht_img, sr_imgs=_sr_img, step=current_step)
 
                 avg_psnr = avg_psnr / idx
                 avg_ssim = avg_ssim / idx
