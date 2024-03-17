@@ -93,13 +93,14 @@ def main(HR_train, HR_val, ymlpath, val_results_path, trained_model_path):
                     gt_img  =  utils.tensor2img(visuals["GT"])
 
                     # log the images to wandb
-                    _lr_img = visuals['LQ'].to("cpu").numpy()
-                    _hr_img = visuals['GT'].to("cpu").numpy()
-                    _sr_img = visuals['SR'].to("cpu").numpy()
+                    _lr_img = visuals['LQ'].to("cpu").permute(1, 2, 0).numpy()
+                    _hr_img = visuals['GT'].to("cpu").permute(1, 2, 0).numpy()
+                    _sr_img = visuals['SR'].to("cpu").permute(1, 2, 0).numpy()
                     
                     # print("Starting to save image.")
-                    save_img_path = os.path.join(img_dir, f"{epoch}_{idx}.png")
-                    utils.save_img(sr_img, save_img_path)
+                    if current_step%500 == 0:
+                        save_img_path = os.path.join(img_dir, f"{epoch}_{idx}.png")
+                        utils.save_img(sr_img, save_img_path)
 
                     crop_size = opt["scale"]
                     gt_img = gt_img / 255.
@@ -125,8 +126,10 @@ def main(HR_train, HR_val, ymlpath, val_results_path, trained_model_path):
                 logger.info(f"# Validation # SSIM: {avg_ssim}")
 
                 metrics = {"PSNR": avg_psnr, 
-                           "SSIM": avg_ssim}
-                wandb.log(metrics, step=current_step)
+                           "SSIM": avg_ssim,
+                           "epoch": epoch,
+                           "iters": current_step}
+                wandb.log(metrics)
 
         if epoch % 100 == 0 and epoch!= 0:
             print(f'Saving models and training states at epoch {epoch}')
