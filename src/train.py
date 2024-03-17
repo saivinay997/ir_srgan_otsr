@@ -12,12 +12,10 @@ import wandb
 import wb_util
 import datetime
 
-## setup weights and biases
+
 
 curr_time = datetime.datetime.now().strftime("%d-%m_%H-%M")
 
-
-# logging.basicConfig(filename="srgan_exp_0.log", level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 # Get the logger
 logger = utils.setup_logger(log_file='sr_gan_training_01.log')
 
@@ -28,14 +26,10 @@ def main(HR_train, HR_val, ymlpath, val_results_path, trained_model_path):
     resume_state = None
     seed = opt['train']['manual_seed']
     utils.set_random_seed(seed)
-
     torch.backends.cudnn.benckmark = True
-
     # Create dataloader with HR and LR images
     dataset = ImageDataloader(HR_train)
     dataloader = DataLoader(dataset, batch_size=opt["datasets"]["train"]["batch_size"],  num_workers=4)
-
-   
 
     val_dataset = ImageDataloader(HR_val)
     val_loader = DataLoader(val_dataset, batch_size=opt["datasets"]["train"]["batch_size"], num_workers=4)
@@ -67,28 +61,23 @@ def main(HR_train, HR_val, ymlpath, val_results_path, trained_model_path):
 
     print(f"Staring the training from epoch: {start_epoch}. Total epoch: {total_epochs}")
     logger.info(f"Staring the training from epoch: {start_epoch}. Total epoch: {total_epochs}")
-
+    max_psnr = 0.0
     for epoch in tqdm(range(start_epoch, total_epochs + 1), desc="Epochs: "):
         for _, (hr_imgs, lr_imgs) in enumerate(dataloader):
             current_step += 1
             # forward pass    
             model.feed_data(hr_imgs, lr_imgs)
-
             # call for optimizer
             model.optimize_parameters(current_step)
 
             model.update_learning_rate(current_step, warmup_iter=opt['train']['warmup_iter'])
-
-            # log the losses to wandb
-            # metrics = {"dLoss": dLoss, "gLoss": gLoss}
-            # wandb.log(metrics, step=current_step)
             
-            if epoch % 10 == 0 and val_loader is not None:
+            if current_step % 50 == 0 and val_loader is not None:
                 avg_psnr = val_pix_err_f = val_pix_err_nf = val_mean_color_err = avg_ssim = 0.0
                 _lr_img = _hr_img = _sr_img = None
                 idx = 0
                 for val_hr, val_lr in val_loader:
-                    if idx > 2:
+                    if idx > 4:
                         break 
                     idx += 1
                     img_name = f"img_{idx}"
@@ -100,13 +89,14 @@ def main(HR_train, HR_val, ymlpath, val_results_path, trained_model_path):
                     model.test()
 
                     visuals = model.get_current_visuals()
-                    sr_img = _sr_img = utils.tensor2img(visuals['SR'])
-                    gt_img = _ht_img =  utils.tensor2img(visuals["GT"])
+                    sr_img  = utils.tensor2img(visuals['SR'])
+                    gt_img  =  utils.tensor2img(visuals["GT"])
 
                     # log the images to wandb
-                    _lr_img = utils.tensor2img(visuals['LQ'])
+                    _lr_img = visuals['LQ'].to("cpu").numpy()
+                    _hr_img = visuals['GT'].to("cpu").numpy()
+                    _sr_img = visuals['SR'].to("cpu").numpy()
                     
-
                     # print("Starting to save image.")
                     save_img_path = os.path.join(img_dir, f"{epoch}_{idx}.png")
                     utils.save_img(sr_img, save_img_path)
@@ -118,29 +108,30 @@ def main(HR_train, HR_val, ymlpath, val_results_path, trained_model_path):
                     cropped_gt_img = gt_img[crop_size:-crop_size, crop_size:-crop_size, :]
                     avg_psnr += utils.calculate_psnr(cropped_sr_img * 255, cropped_gt_img * 255)
                     avg_ssim += utils.calculate_ssim(cropped_sr_img * 255, cropped_gt_img * 255)
-
-                wb_util.log_image_table(lr_imgs=_lr_img, hr_imgs=_ht_img, sr_imgs=_sr_img, step=current_step)
-
+                
                 avg_psnr = avg_psnr / idx
                 avg_ssim = avg_ssim / idx
                 val_pix_err_f /= idx
                 val_pix_err_nf /= idx
                 val_mean_color_err /= idx
 
+                if current_step % 500 == 0 or avg_psnr > max_psnr:
+                    max_psnr = avg_psnr
+                    wb_util.log_image_table(lr_imgs=_lr_img, hr_imgs=_hr_img, sr_imgs=_sr_img, 
+                                            psnr = avg_psnr, ssim = avg_ssim, step=current_step)
+                    
                 logger.info(f"Epoch: {epoch} | iters: {current_step} | PSNR: {avg_psnr}")
                 logger.info(f"# Validation # PSNR: {avg_psnr}")
                 logger.info(f"# Validation # SSIM: {avg_ssim}")
 
-                metrics = {"PSNR": avg_psnr, "SSIM": avg_ssim}
+                metrics = {"PSNR": avg_psnr, 
+                           "SSIM": avg_ssim}
                 wandb.log(metrics, step=current_step)
 
-
-
-        if epoch % 3 == 0 and epoch!= 0:
+        if epoch % 100 == 0 and epoch!= 0:
             print(f'Saving models and training states at epoch {epoch}')
             model.save(current_step, trained_model_path)
             # model.save_training_state(epoch, current_step)
-
 
     print(f'Saving models and training states at epoch {epoch}')
     model.save(current_step, trained_model_path)

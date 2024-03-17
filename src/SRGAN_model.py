@@ -170,7 +170,7 @@ class SRGANModel(BaseModel):
                 l_g_gan = self.l_gan_w *pow(pred_d_real.mean() - pred_g_fake.mean(), 2)
 
             l_g_total += l_g_gan
-            if step % 500 == 0:
+            if step % 50 == 0:
                 logger.info(f"Generator Loss: {l_g_total} at step {step}")
                 wandb.log({"Generator Loss": l_g_total}, step=step)
             l_g_total.backward(retain_graph=True)
@@ -218,7 +218,7 @@ class SRGANModel(BaseModel):
             l_d_total += (l_d_real + l_d_fake) / 2
         else:
             raise NotImplementedError('GAN type [{:s}] is not found'.format(self.gan_type))    
-        if step % 500 == 0:
+        if step % 50 == 0:
                 logger.info(f"Discriminator Loss: {l_d_total} at step {step}")
                 wandb.log({"Discriminator Loss": l_d_total}, step=step)
         l_d_total.backward()
