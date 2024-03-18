@@ -131,10 +131,10 @@ def main(HR_train, HR_val, ymlpath, val_results_path, trained_model_path):
                            "iters": current_step}
                 wandb.log(metrics)
 
-        if epoch % 100 == 0 and epoch!= 0:
+        if epoch % 20 == 0 and epoch!= 0:
             print(f'Saving models and training states at epoch {epoch}')
-            model.save(current_step, trained_model_path)
+            model.save(epoch, trained_model_path)
             # model.save_training_state(epoch, current_step)
 
     print(f'Saving models and training states at epoch {epoch}')
-    model.save(current_step, trained_model_path)
+    model.save(epoch, trained_model_path)
