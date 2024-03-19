@@ -88,20 +88,20 @@ def calculate_ssim(img1, img2):
     
 
 
-def setup_logger(log_file='sr_gan_training_01.log'):
-    # Create a logger
-    logger = logging.getLogger('sr_train')
-    logger.setLevel(logging.INFO)
+# def setup_logger(log_file='sr_gan_training_01.log'):
+#     # Create a logger
+#     logger = logging.getLogger('sr_train')
+#     logger.setLevel(logging.INFO)
 
-    # Create a file handler and set the log level to DEBUG
-    file_handler = logging.FileHandler(log_file)
-    file_handler.setLevel(logging.DEBUG)
+#     # Create a file handler and set the log level to DEBUG
+#     file_handler = logging.FileHandler(log_file)
+#     file_handler.setLevel(logging.DEBUG)
 
-    # Create a formatter and set the format for the logs
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    file_handler.setFormatter(formatter)
+#     # Create a formatter and set the format for the logs
+#     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+#     file_handler.setFormatter(formatter)
 
-    # Add the file handler to the logger
-    logger.addHandler(file_handler)
+#     # Add the file handler to the logger
+#     logger.addHandler(file_handler)
 
-    return logger
+#     return logger

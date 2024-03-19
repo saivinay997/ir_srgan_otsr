@@ -17,7 +17,7 @@ import datetime
 curr_time = datetime.datetime.now().strftime("%d-%m_%H-%M")
 
 # Get the logger
-logger = utils.setup_logger(log_file='ir_sr_gan_training.log')
+# logger = utils.setup_logger(log_file='ir_sr_gan_training.log')
 
 def main(HR_train, HR_val, ymlpath, val_results_path, trained_model_path):
     with open(ymlpath) as f:
@@ -60,7 +60,7 @@ def main(HR_train, HR_val, ymlpath, val_results_path, trained_model_path):
         })
 
     print(f"Staring the training from epoch: {start_epoch}. Total epoch: {total_epochs}")
-    logger.info(f"Staring the training from epoch: {start_epoch}. Total epoch: {total_epochs}")
+    # logger.info(f"Staring the training from epoch: {start_epoch}. Total epoch: {total_epochs}")
     max_psnr = 0.0
     for epoch in tqdm(range(start_epoch, total_epochs + 1), desc="Epochs: "):
         for _, (hr_imgs, lr_imgs) in enumerate(dataloader):
@@ -121,9 +121,9 @@ def main(HR_train, HR_val, ymlpath, val_results_path, trained_model_path):
                     wb_util.log_image_table(lr_imgs=_lr_img, hr_imgs=_hr_img, sr_imgs=_sr_img, 
                                             psnr = avg_psnr, ssim = avg_ssim, step=current_step)
                     
-                logger.info(f"Epoch: {epoch} | iters: {current_step} | PSNR: {avg_psnr}")
-                logger.info(f"# Validation # PSNR: {avg_psnr}")
-                logger.info(f"# Validation # SSIM: {avg_ssim}")
+                # logger.info(f"Epoch: {epoch} | iters: {current_step} | PSNR: {avg_psnr}")
+                # logger.info(f"# Validation # PSNR: {avg_psnr}")
+                # logger.info(f"# Validation # SSIM: {avg_ssim}")
 
                 metrics = {"PSNR": avg_psnr, 
                            "SSIM": avg_ssim,
