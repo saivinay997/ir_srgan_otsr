@@ -5,15 +5,19 @@ from PIL import Image
 import os
 
 class ImageDataloader(Dataset):
-    def __init__(self, hr_dir, size=32):
+    def __init__(self, hr_dir, val=False, size=32):
         self.hr_dir = hr_dir
         self.size = size
-        self.hr_images = os.listdir(hr_dir)
+        if val == False:
+            self.hr_images = os.listdir(hr_dir)[:3000]
+        else:
+            self.hr_images = os.listdir(hr_dir)[:100]
         self.transform_lr = transforms.Compose([transforms.Resize((self.size*4, self.size*4)),
                                                 transforms.CenterCrop(self.size*4),
                                                 transforms.Resize(self.size),
                                                transforms.ToTensor()])
-        self.transform_hr = transforms.Compose([transforms.CenterCrop(self.size*4),
+        self.transform_hr = transforms.Compose([transforms.Resize((self.size*4, self.size*4)),
+                                                transforms.CenterCrop(self.size*4),
                                                transforms.ToTensor()])
 
     def __len__(self):

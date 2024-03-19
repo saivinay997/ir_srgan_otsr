@@ -28,10 +28,10 @@ def main(HR_train, HR_val, ymlpath, val_results_path, trained_model_path):
     utils.set_random_seed(seed)
     torch.backends.cudnn.benckmark = True
     # Create dataloader with HR and LR images
-    dataset = ImageDataloader(HR_train)
+    dataset = ImageDataloader(HR_train, val=False)
     dataloader = DataLoader(dataset, batch_size=opt["datasets"]["train"]["batch_size"],  num_workers=4)
 
-    val_dataset = ImageDataloader(HR_val)
+    val_dataset = ImageDataloader(HR_val, val=True)
     val_loader = DataLoader(val_dataset, batch_size=opt["datasets"]["train"]["batch_size"], num_workers=4)
 
     #Initialize SRGAN model
@@ -91,22 +91,22 @@ def main(HR_train, HR_val, ymlpath, val_results_path, trained_model_path):
                     visuals = model.get_current_visuals()
                     sr_img  = utils.tensor2img(visuals['SR'])
                     gt_img  =  utils.tensor2img(visuals["GT"])
-
+                    # print(sr_img.shape, gt_img.shape, visuals["LQ"].shape)
                     # log the images to wandb
                     _lr_img = visuals['LQ'].to("cpu").permute(1, 2, 0).numpy()
                     _hr_img = visuals['GT'].to("cpu").permute(1, 2, 0).numpy()
                     _sr_img = visuals['SR'].to("cpu").permute(1, 2, 0).numpy()
                     
                     # print("Starting to save image.")
-                    if current_step%500 == 0:
-                        save_img_path = os.path.join(img_dir, f"{epoch}_{idx}.png")
+                    if current_step%100 == 0:
+                        save_img_path = os.path.join(img_dir, f"{current_step}_{idx}.png")
                         utils.save_img(sr_img, save_img_path)
 
                     crop_size = opt["scale"]
                     gt_img = gt_img / 255.
                     sr_img = sr_img / 255.
-                    cropped_sr_img = sr_img[crop_size:-crop_size, crop_size:-crop_size, :]
-                    cropped_gt_img = gt_img[crop_size:-crop_size, crop_size:-crop_size, :]
+                    cropped_sr_img = sr_img[crop_size:-crop_size, crop_size:-crop_size]
+                    cropped_gt_img = gt_img[crop_size:-crop_size, crop_size:-crop_size]
                     avg_psnr += utils.calculate_psnr(cropped_sr_img * 255, cropped_gt_img * 255)
                     avg_ssim += utils.calculate_ssim(cropped_sr_img * 255, cropped_gt_img * 255)
                 
@@ -116,7 +116,7 @@ def main(HR_train, HR_val, ymlpath, val_results_path, trained_model_path):
                 val_pix_err_nf /= idx
                 val_mean_color_err /= idx
 
-                if current_step % 500 == 0 or avg_psnr > max_psnr:
+                if current_step % 100 == 0 or avg_psnr > max_psnr:
                     max_psnr = avg_psnr
                     wb_util.log_image_table(lr_imgs=_lr_img, hr_imgs=_hr_img, sr_imgs=_sr_img, 
                                             psnr = avg_psnr, ssim = avg_ssim, step=current_step)
@@ -131,7 +131,7 @@ def main(HR_train, HR_val, ymlpath, val_results_path, trained_model_path):
                            "iters": current_step}
                 wandb.log(metrics)
 
-        if epoch % 100 == 0 and epoch!= 0:
+        if epoch % 50 == 0 and epoch!= 0:
             print(f'Saving models and training states at epoch {epoch}')
             model.save(current_step, trained_model_path)
             # model.save_training_state(epoch, current_step)

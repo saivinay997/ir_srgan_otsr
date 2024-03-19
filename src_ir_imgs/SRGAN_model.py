@@ -172,7 +172,11 @@ class SRGANModel(BaseModel):
             l_g_total += l_g_gan
             if step % 50 == 0:
                 logger.info(f"Generator Loss: {l_g_total} at step {step}")
-                wandb.log({"Generator Loss": l_g_total}, step=step)
+                metric = {"Generator Loss": l_g_total,
+                          "pixel_loss": l_g_pix,
+                          "feature_loss": l_g_fea,
+                          "wgan-qc": l_g_gan}
+                wandb.log(metric, step=step)
             l_g_total.backward(retain_graph=True)
             torch.nn.utils.clip_grad_norm_(self.netG.parameters(), 5)
             self.optimizer_G.step()

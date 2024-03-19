@@ -22,7 +22,7 @@ datasets:
     GT_size: 128
     use_flip: true
     use_rot: true
-    color: RGB
+    color: GRAY
   val:
     name: val
     mode: LQGT
