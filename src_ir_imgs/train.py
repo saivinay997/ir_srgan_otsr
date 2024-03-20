@@ -56,6 +56,10 @@ def main(HR_train, HR_val, ymlpath, val_results_path, trained_model_path):
         "epochs": total_epochs,
         "total_iters": total_iters,
         "batch_size": opt["datasets"]["train"]["batch_size"],
+        "pixel_criterion": opt["train"]["pixel_criterion"],
+        "feature_criterion": opt["train"]["feature_criterion"],
+        "gan_type": opt["train"]["gan_type"],
+        "train_parameters": opt["train"]
         # "learning_rate": opt["train"]["lr"]
         })
 
