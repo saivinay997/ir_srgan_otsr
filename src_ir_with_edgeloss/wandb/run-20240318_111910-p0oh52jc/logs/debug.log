@@ -1,0 +1,29 @@
+2024-03-18 11:19:10,326 INFO    MainThread:8396 [wandb_setup.py:_flush():76] Current SDK version is 0.16.4
+2024-03-18 11:19:10,326 INFO    MainThread:8396 [wandb_setup.py:_flush():76] Configure stats pid to 8396
+2024-03-18 11:19:10,326 INFO    MainThread:8396 [wandb_setup.py:_flush():76] Loading settings from C:\Users\saivi\.config\wandb\settings
+2024-03-18 11:19:10,326 INFO    MainThread:8396 [wandb_setup.py:_flush():76] Loading settings from C:\SaiVinay\SproutsAI\GitHub_\ir_srgan_otsr\src_ir_imgs\wandb\settings
+2024-03-18 11:19:10,326 INFO    MainThread:8396 [wandb_setup.py:_flush():76] Loading settings from environment variables: {}
+2024-03-18 11:19:10,326 INFO    MainThread:8396 [wandb_setup.py:_flush():76] Applying setup settings: {'_disable_service': False}
+2024-03-18 11:19:10,327 INFO    MainThread:8396 [wandb_setup.py:_flush():76] Inferring run settings from compute environment: {'program': '<python with no main file>'}
+2024-03-18 11:19:10,327 INFO    MainThread:8396 [wandb_init.py:_log_setup():526] Logging user logs to C:\SaiVinay\SproutsAI\GitHub_\ir_srgan_otsr\src_ir_imgs\wandb\run-20240318_111910-p0oh52jc\logs\debug.log
+2024-03-18 11:19:10,328 INFO    MainThread:8396 [wandb_init.py:_log_setup():527] Logging internal logs to C:\SaiVinay\SproutsAI\GitHub_\ir_srgan_otsr\src_ir_imgs\wandb\run-20240318_111910-p0oh52jc\logs\debug-internal.log
+2024-03-18 11:19:10,328 INFO    MainThread:8396 [wandb_init.py:_jupyter_setup():472] configuring jupyter hooks <wandb.sdk.wandb_init._WandbInit object at 0x0000025577DBB110>
+2024-03-18 11:19:10,328 INFO    MainThread:8396 [wandb_init.py:init():566] calling init triggers
+2024-03-18 11:19:10,328 INFO    MainThread:8396 [wandb_init.py:init():573] wandb.init called with sweep_config: {}
+config: {'epochs': 5, 'total_iters': 40001, 'batch_size': 1}
+2024-03-18 11:19:10,328 INFO    MainThread:8396 [wandb_init.py:init():616] starting backend
+2024-03-18 11:19:10,328 INFO    MainThread:8396 [wandb_init.py:init():620] setting up manager
+2024-03-18 11:19:10,330 INFO    MainThread:8396 [backend.py:_multiprocessing_setup():105] multiprocessing start_methods=spawn, using: spawn
+2024-03-18 11:19:10,336 INFO    MainThread:8396 [wandb_init.py:init():628] backend started and connected
+2024-03-18 11:19:10,363 INFO    MainThread:8396 [wandb_run.py:_label_probe_notebook():1295] probe notebook
+2024-03-18 11:19:10,364 INFO    MainThread:8396 [wandb_run.py:_label_probe_notebook():1305] Unable to probe notebook: 'NoneType' object has no attribute 'get'
+2024-03-18 11:19:10,364 INFO    MainThread:8396 [wandb_init.py:init():720] updated telemetry
+2024-03-18 11:19:10,406 INFO    MainThread:8396 [wandb_init.py:init():753] communicating run to backend with 90.0 second timeout
+2024-03-18 11:19:11,405 INFO    MainThread:8396 [wandb_run.py:_on_init():2262] communicating current version
+2024-03-18 11:19:11,731 INFO    MainThread:8396 [wandb_run.py:_on_init():2271] got version response 
+2024-03-18 11:19:11,732 INFO    MainThread:8396 [wandb_init.py:init():804] starting run threads in backend
+2024-03-18 11:19:18,963 INFO    MainThread:8396 [wandb_run.py:_console_start():2241] atexit reg
+2024-03-18 11:19:18,963 INFO    MainThread:8396 [wandb_run.py:_redirect():2096] redirect: wrap_raw
+2024-03-18 11:19:18,963 INFO    MainThread:8396 [wandb_run.py:_redirect():2161] Wrapping output streams.
+2024-03-18 11:19:18,963 INFO    MainThread:8396 [wandb_run.py:_redirect():2186] Redirects installed.
+2024-03-18 11:19:18,964 INFO    MainThread:8396 [wandb_init.py:init():847] run started, returning control to user process
