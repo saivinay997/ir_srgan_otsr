@@ -19,7 +19,7 @@ curr_time = datetime.datetime.now().strftime("%d-%m_%H-%M")
 # Get the logger
 # logger = utils.setup_logger(log_file='ir_sr_gan_training.log')
 
-def main(HR_train, HR_val, ymlpath, val_results_path, trained_model_path):
+def main(HR_train, HR_val, ymlpath, val_results_path, trained_model_path, note):
     with open(ymlpath) as f:
         opt = yaml.safe_load(f)
     # neglect the resume state as of now.
@@ -53,6 +53,7 @@ def main(HR_train, HR_val, ymlpath, val_results_path, trained_model_path):
         name=f"ir_experiment_{curr_time}", 
         # Track hyperparameters and run metadata
         config={
+            "Note":note,
         "epochs": total_epochs,
         "total_iters": total_iters,
         "batch_size": opt["datasets"]["train"]["batch_size"],

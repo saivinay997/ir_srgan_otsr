@@ -68,9 +68,9 @@ train:
   lr_steps: [10000, 20000, 30000, 40000]
   lr_gamma: 0.5
 
-  pixel_criterion: l2
-  pixel_weight: !!float 1e-2
-  feature_criterion: l2
+  pixel_criterion: l1 #l1 | l2
+  pixel_weight: !!float 5e-2
+  feature_criterion: l2 #l1 | l2
   feature_weight: 0.7
   gan_type: wgan-qc  # gan | ragan | wgan-qc
   gan_weight: !!float 1
