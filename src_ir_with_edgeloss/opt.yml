@@ -85,7 +85,7 @@ train:
   WQC_gamma: 0.40
 
   edge_type: sobel
-  edge_weight: !!float 1e-2
+  edge_weight: !!float 5e-2
   #edge_weight: 0
   edge_enhance: true
 

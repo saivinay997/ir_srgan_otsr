@@ -8,7 +8,7 @@ from torch import nn
 def edge_conv2d(im, use_cuda):
     in_ch, out_ch = 1, 1
     conv_op = nn.Conv2d(in_ch, out_ch, kernel_size=3, padding=1, bias=False)
-    sobel_kernel = np.array([[-1, -1, -1], [-1, 8, -1], [-1, -1, -1]], dtype="float32") / 3
+    sobel_kernel = np.array([[-1, -1, -1], [-1, 8, -1], [-1, -1, -1]], dtype="float32") 
     sobel_kernel = sobel_kernel.reshape((1, 1, 3, 3))
     sobel_kernel = np.repeat(sobel_kernel, in_ch, axis=1)
     sobel_kernel = np.repeat(sobel_kernel, in_ch, axis=0)

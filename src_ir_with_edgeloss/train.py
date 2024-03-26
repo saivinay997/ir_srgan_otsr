@@ -50,7 +50,7 @@ def main(HR_train, HR_val, ymlpath, val_results_path, trained_model_path, note):
         # Set the project where this run will be logged
         project="ir_sr_gan_training", 
         # We pass a run name (otherwise it’ll be randomly assigned, like sunshine-lollypop-10)
-        name=f"sobel_edge_loss_0.1", 
+        name=f"sobel_edge_loss_{curr_time}", 
         # Track hyperparameters and run metadata
         config={
             "Note":note,
@@ -149,3 +149,4 @@ def main(HR_train, HR_val, ymlpath, val_results_path, trained_model_path, note):
 
     print(f'Saving models and training states at epoch {epoch}')
     model.save(current_step, trained_model_path)
+    wandb.finish()
