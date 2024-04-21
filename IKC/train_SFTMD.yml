@@ -1,0 +1,130 @@
+#### general settings
+name: 001_SFTMD_DEMO_x4_demo_DIV2K
+use_tb_logger: true
+model: sftmd
+distortion: sr
+scale: 4
+gpu_ids: [0]
+kernel_size: 21
+code_length: 10
+sig_min: 0.2
+sig_max: 4.0
+sig: 2.6
+is_train: True
+#### datasets
+datasets:
+  train:
+    name: DIV2K
+    mode: LQGTker
+    dataroot_GT: /mnt/yjchai/SR_data/Flickr2K_train/HR/x4
+    dataroot_LQ: ~
+
+    use_shuffle: true
+    n_workers: 12  # per GPU
+    batch_size: 32
+    GT_size: 128
+    LR_size: 32
+    use_flip: true
+    use_rot: true
+    color: RGB
+  val:
+    name: DIV2K
+    mode: LQGTker
+    dataroot_GT: /mnt/yjchai/SR_data/DIV2K_test/HR/x4
+    dataroot_LQ: ~
+
+#### network structures
+network_G:
+  which_model_G: SFTMD # SRResNet
+  in_nc: 1
+  out_nc: 1
+  nf: 64
+  nb: 16
+  upscale: 4
+  code_length: 10
+network_D:
+  which_model_D: discriminator_vgg_128
+  in_nc: 1
+  nf: 64
+#### path
+path:
+  pretrain_model_G: ~
+  strict_load: true
+  resume_state: ~
+  models: ../train_model
+
+#### training settings: learning rate scheme, loss
+train:
+  lr_G: !!float 1e-4
+  lr_scheme: MultiStepLR
+  beta1: 0.9
+  beta2: 0.99
+  niter: 40000 #5L #40K
+  warmup_iter: -1  # no warm up
+  T_period: [125000, 125000, 125000, 125000]
+  restarts: [125000, 250000, 375000]
+  restart_weights: [1, 1, 1]
+  eta_min: !!float 1e-7
+
+  pixel_criterion: l1 #l1 | l2
+  pixel_weight: !!float 5e-2
+  feature_criterion: l2 #l1 | l2
+  feature_weight: 0.7
+  gan_type: wgan-qc  # gan | ragan | wgan-qc
+  gan_weight: !!float 1
+  weight_decay_D: 0
+  weight_decay_G: 0
+  D_update_ratio: 1
+  D_init_iters: 0
+  
+  
+  lr_steps: [10000, 20000, 30000, 40000]
+  lr_gamma: 0.5
+
+  manual_seed: 10
+  val_freq: 1000
+
+  WQC_KCoef: 1
+  WQC_gamma: 0.40
+
+  edge_type: sobel
+  edge_weight: !!float 5e-2
+  #edge_weight: 0
+  edge_enhance: true
+
+#### logger
+logger:
+  print_freq: 100
+  save_checkpoint_freq: !!float 5e4
+
+sftmd:
+  gpu_ids: [6, 7]
+  is_train: False
+  scale: 4
+  datasets:
+    test:
+      name: DIV2K
+      mode: LQGTker
+      phase: test
+      dataroot_GT: /mnt/yjchai/SR_data/Flickr2K/HR/x4
+      dataroot_LQ: /mnt/yjchai/SR_data/Flickr2K/HR/x4
+      GT_size: 256
+      LR_size: 64
+      data_type: img
+      color: RGB
+
+  model: sftmd
+
+  network_G:
+    which_model_G: SFTMD
+    in_nc: 3
+    out_nc: 3
+    nf: 64
+    nb: 16
+    upscale: 4
+    code_length: 10
+
+  path:
+    results_root: /media/sdc/yjchai/IKC/results
+    pretrain_model_G: /media/sdc/yjchai/IKC/experiments/001_SFTMD_DEMO_x4_start_DIV2K/models/latest_G.pth
+    strict_load: True
