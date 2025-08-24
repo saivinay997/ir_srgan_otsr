@@ -147,6 +147,7 @@ class SRMDPreprocessing(object):
             Noise_level = Variable(Noise_level)
             re_code = torch.cat([kernel_code, Noise_level * 10], dim=1) if self.noise else kernel_code
             lr_re = Variable(lr_noised_t)
+        print("Kernel_size",  )
         return (lr_re, re_code, b_kernels) if kernel else (lr_re, re_code)
 
 
@@ -184,7 +185,7 @@ class BatchSRKernel(object):
 #         return torch.bmm(batch_kernel.view((B, 1, H * W)), self.weight.expand((B, ) + self.size)).view((B, -1))
 class PCAEncoder(object):
     def __init__(self, weight, cuda=False):
-        self.weight = torch.tensor(weight, dtype=torch.double)  # [l^2, k]
+        self.weight = torch.tensor(weight, dtype=torch.float)  # [l^2, k]
         self.weight = self.weight.t() 
         self.size = self.weight.size()
         if cuda:
@@ -200,7 +201,7 @@ class PCAEncoder(object):
         # print(weight_mat.size())
         # print(type(weight_mat))
         # print(type(batch_kernel))
-        return torch.bmm(batch_kernel.double().view(B, 1, H * W), weight_mat.double()).view(B, -1)
+        return torch.bmm(batch_kernel.float().view(B, 1, H * W), weight_mat.float()).view(B, -1)
 # class PCAEncoder(object):
 #     def __init__(self, weight, cuda=False):
 #         self.weight = torch.tensor(weight, dtype= torch.double)  # [l^2, k]

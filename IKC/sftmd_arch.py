@@ -104,7 +104,10 @@ class SFT_Layer(nn.Module):
         self.add_conv2 = nn.Conv2d(32, nf, kernel_size=3, stride=1, padding=1)
 
     def forward(self, feature_maps, para_maps):
+        print(feature_maps.size())
+        print(para_maps.size())
         cat_input = torch.cat((feature_maps, para_maps), dim=1)
+        print(cat_input.size())
         mul = torch.sigmoid(self.mul_conv2(self.mul_leaky(self.mul_conv1(cat_input))))
         add = self.add_conv2(self.add_leaky(self.add_conv1(cat_input)))
         return feature_maps * mul + add
@@ -174,7 +177,8 @@ class SFTMD(nn.Module):
         B, C, H, W = input.size() # I_LR batch
         B_h, C_h = ker_code.size() # Batch, Len=10
         ker_code_exp = ker_code.view((B_h, C_h, 1, 1)).expand((B_h, C_h, H, W)) #kernel_map stretch
-
+        print(ker_code)
+        
         fea_bef = self.conv3(self.relu_conv2(self.conv2(self.relu_conv1(self.conv1(input)))))
         fea_in = fea_bef
         for i in range(self.num_blocks):
