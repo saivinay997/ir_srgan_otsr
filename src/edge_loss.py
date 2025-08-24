@@ -28,11 +28,34 @@ def edge_extraction(img, use_cuda=True):
     return edge_detect
 
 def sobel(img, use_cuda=True):
-    in_ch = 3
+    """
+    Apply Sobel edge detection to input tensor
+    
+    Args:
+        img: Input tensor of shape (B, C, H, W)
+        use_cuda: Whether to use CUDA
+    
+    Returns:
+        Edge detected tensor of same shape as input
+    """
+    # Ensure input is on the correct device
+    device = img.device
+    use_cuda = use_cuda and device.type == 'cuda'
+    
+    in_ch = img.shape[1] if len(img.shape) == 4 else 3
     image_shape = img.shape
-    edge_detect = torch.zeros(image_shape)
-    for i in range(image_shape[0]):
-        edge_detect[i] = edge_conv2d(img[i].reshape((1,in_ch, image_shape[2], image_shape[3])), use_cuda)
+    
+    # Handle different input shapes
+    if len(image_shape) == 4:
+        # Batch input: (B, C, H, W)
+        edge_detect = torch.zeros(image_shape, device=device)
+        for i in range(image_shape[0]):
+            edge_detect[i] = edge_conv2d(img[i].unsqueeze(0), use_cuda).squeeze(0)
+    elif len(image_shape) == 3:
+        # Single image: (C, H, W)
+        edge_detect = edge_conv2d(img.unsqueeze(0), use_cuda).squeeze(0)
+    else:
+        raise ValueError(f"Expected 3D or 4D tensor, got {len(image_shape)}D")
 
     return edge_detect
 

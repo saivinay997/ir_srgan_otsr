@@ -18,6 +18,9 @@ class SRGANModel(BaseModel):
         self.edge_enhance = opt['train']['edge_enhance']
         # Device agnostic code 
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        
+        # Add missing rank attribute for distributed training
+        self.rank = 0  # Default rank for single GPU training
 
         # define the networks
         self.netG = networks.define_G(opt).to(self.device)
@@ -153,6 +156,8 @@ class SRGANModel(BaseModel):
         self.fake_H = self.netG(self.var_L)
 
         l_g_total = 0
+        l_g_pix = l_g_fea = l_g_gan = l_g_edge = 0  # Initialize loss variables
+        
         if step % self.D_update_ratio == 0 and step > self.D_init_iters:
             if self.cri_pix: # pixel loss
                 l_g_pix = self.l_pix_w * self.cri_pix(self.fake_H, self.var_H)
@@ -179,8 +184,8 @@ class SRGANModel(BaseModel):
             l_g_total += l_g_gan
 
             if self.edge_enhance:
-                real_edge = self.cril_edge(self.var_H)
-                fake_edge = self.cril_edge(self.fake_H)
+                real_edge = self.cril_edge(self.var_H, use_cuda=(self.device=="cuda"))
+                fake_edge = self.cril_edge(self.fake_H, use_cuda=(self.device=="cuda"))
                 edge_diff = real_edge - fake_edge
                 edge_squa = edge_diff * edge_diff
                 l_g_edge = self.l_edge_w * edge_squa.mean()
@@ -239,7 +244,7 @@ class SRGANModel(BaseModel):
             l_d_fake = self.cri_gan(pred_HStar_fake, False)
             l_d_total += (l_d_real + l_d_fake) / 2
         else:
-            raise NotImplementedError('GAN type [{:s}] is not found'.format(self.gan_type))    
+            raise NotImplementedError('GAN type [{:s}] is not found'.format(self.opt['train']['gan_type']))    
         if step % 50 == 0:
                 # logger.info(f"Discriminator Loss: {l_d_total} at step {step}")
                 wandb.log({"Discriminator Loss": l_d_total}, step=step)
@@ -303,7 +308,8 @@ class SRGANModel(BaseModel):
             for i in range(0, 4, n_GPUs):
                 x = [x_chop[i:(i + n_GPUs)] for x_chop in x_chops]
 
-                y = P.data_parallel(self.netG, *x, range(n_GPUs))
+                # Use DataParallel instead of P.data_parallel
+                y = DataParallel(self.netG)(*x)
                 if not isinstance(y, list): y = [y]
                 if not y_chops:
                     y_chops = [[c for c in _y.chunk(n_GPUs, dim=0)] for _y in y]
