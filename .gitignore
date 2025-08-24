@@ -1,53 +1,52 @@
+# Dataset directories
 DIV2K_train_HR
 Flickr2K
 DF2K_LR_HR
-flicker_kernel_done
-src/vgg19.pth
-src/vgg19_bn.pth
-results
-results_kernels_DIV2K
-KernelGAN
 Dataset
-src/val_results
-src/val_results_1
-src/val_results_2
-src/val_results_3
-src/val_results_4
-src/val_results_5
-src/val_results_6
-src/wandb
-src/trained_models
-src/trained_models_1
-src/trained_models_2
-src/trained_models_3
-src/trained_models_4
-src/trained_models_5
-src/trained_models_6
 
-__pycache__
-src/__pycache__
+# Kernel data directories
+flicker_kernel_done
+DroneImages_4xkernels
+FLIR_4xkernels
+kernel_outputs
+results_kernels_DIV2K
+
+# Model files
 *.pth
+*.pkl
+*.h5
+*.ckpt
 
-src_ir_imgs/vgg19.pth
-src_ir_imgs/vgg19_bn.pth
-src_ir_imgs/trained_models
-src_ir_imgs/trained_models_L1
-src_ir_imgs/trained_models_PL2_FL2
-src_ir_imgs/trained_models_PL1_FL2
-src_ir_imgs/trained_models_PW5e
-src_ir_imgs/trained_models_sobel
-src_ir_imgs/trained_models_1
-src_ir_imgs/val_results
-src_ir_imgs/val_results_L1
-src_ir_imgs/val_results_PL1_FL2
-src_ir_imgs/val_results_PL2_FL2
-src_ir_imgs/val_results_PW5e
-src_ir_imgs/val_results_sobel
-src_ir_imgs/val_results_1
-src_ir_imgs/wandb
-FLIR
-*wandb
-*val_results_sobel
-*trained_models_sobel
-*val_results*
+# Training artifacts
 *trained_models*
+*val_results*
+*wandb*
+*logs*
+
+# Cache directories
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Large development files
+dev.ipynb
+model_validation.ipynb
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Results and outputs
+results/
+outputs/
+checkpoints/
+
+# Temporary files
+*.tmp
+*.temp
