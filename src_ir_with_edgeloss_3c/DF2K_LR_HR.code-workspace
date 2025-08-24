@@ -1,0 +1,64 @@
+{
+	"folders": [
+		{
+			"path": "../DF2K_LR_HR"
+		},
+		{
+			"path": "../DIV2K_train_HR"
+		},
+		{
+			"path": "../DroneImages_4xkernels"
+		},
+		{
+			"path": "../flicker_kernel_done"
+		},
+		{
+			"path": "../Flickr2K"
+		},
+		{
+			"path": "../FLIR_4xkernels"
+		},
+		{
+			"path": "../gan_project"
+		},
+		{
+			"path": "../IKC"
+		},
+		{
+			"path": "../Kernel_GAN"
+		},
+		{
+			"path": "../kernel_outputs"
+		},
+		{
+			"path": "../model_validation"
+		},
+		{
+			"path": "../results"
+		},
+		{
+			"path": "../results_kernels_DIV2K"
+		},
+		{
+			"path": "../SOTA"
+		},
+		{
+			"path": "../src"
+		},
+		{
+			"path": "../src_ir_imgs"
+		},
+		{
+			"path": "../src_ir_with_edgeloss"
+		},
+		{
+			"path": "."
+		},
+		{
+			"path": "../srgan"
+		},
+		{
+			"path": "../with_wgangp"
+		}
+	]
+}
