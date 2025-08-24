@@ -1,5 +1,5 @@
 #-*- coding:utf-8 -*-
-from pulp import LpProblem,LpMaximize,LpVariable,LpContinuous,lpSum
+from pulp import LpProblem,LpMaximize,LpVariable,LpContinuous,lpSum,PULP_CBC_CMD
 import numpy as np
 
 def H_Star_Solution(fakeImg, trueImg, coef_K):
@@ -33,7 +33,8 @@ def H_Star_Solution(fakeImg, trueImg, coef_K):
             fakeIndex='X_'+str(j)
             prob += lpSum([ingredient_vars[trueIndex],-ingredient_vars[fakeIndex]]) <= transportCost[i][j]
 
-    prob.solve()
+    # Suppress CBC solver output using silent solver
+    prob.solve(PULP_CBC_CMD(msg=False))
 
     HStar_real = [0]*trueNum
     Ord=0

@@ -9,7 +9,11 @@ from linePromgram import H_Star_Solution
 from base_model import BaseModel
 import lr_scheduler
 import utils
-import wandb
+try:
+    import wandb
+    WANDB_AVAILABLE = True
+except ImportError:
+    WANDB_AVAILABLE = False
 from edge_loss import sobel
 
 class SRGANModel(BaseModel):
@@ -192,7 +196,7 @@ class SRGANModel(BaseModel):
 
                 l_g_total += l_g_edge
 
-            if step % 50 == 0:
+            if step % 50 == 0 and WANDB_AVAILABLE:
                 # logger.info(f"Generator Loss: {l_g_total} at step {step}")
                 metric = {"Generator Loss": l_g_total,
                           "pixel_loss": l_g_pix,
@@ -245,7 +249,7 @@ class SRGANModel(BaseModel):
             l_d_total += (l_d_real + l_d_fake) / 2
         else:
             raise NotImplementedError('GAN type [{:s}] is not found'.format(self.opt['train']['gan_type']))    
-        if step % 50 == 0:
+        if step % 50 == 0 and WANDB_AVAILABLE:
                 # logger.info(f"Discriminator Loss: {l_d_total} at step {step}")
                 wandb.log({"Discriminator Loss": l_d_total}, step=step)
         l_d_total.backward()
@@ -255,6 +259,13 @@ class SRGANModel(BaseModel):
         self.g_total_loss=l_g_total.detach().cpu()
 
         # return l_d_total, l_g_total
+
+    def get_current_losses(self):
+        """Return current losses for logging."""
+        return {
+            'G_loss': self.g_total_loss.item() if hasattr(self, 'g_total_loss') else 0.0,
+            'D_loss': self.d_total_loss.item() if hasattr(self, 'd_total_loss') else 0.0
+        }
 
     def save(self, iter_step, trained_model_path):
         self.save_network(self.netG, "G", iter_step, trained_model_path)

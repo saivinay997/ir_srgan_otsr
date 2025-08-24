@@ -50,3 +50,7 @@ checkpoints/
 # Temporary files
 *.tmp
 *.temp
+
+*.jpg
+*.txt
+
